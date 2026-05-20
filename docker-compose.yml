@@ -1,0 +1,18 @@
+
+services:
+
+  analytics-platform:
+
+    build: .
+
+    container_name: product-intelligence-platform
+
+    ports:
+      - "8510:8501"
+
+    volumes:
+      - .:/app
+
+    command: >
+      streamlit run app/dashboard.py
+      --server.address=0.0.0.0

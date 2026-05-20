@@ -146,17 +146,22 @@ Launch dashboard:
 streamlit run app/dashboard.py
 ```
 
+### Containerization
+- Fully containerized analytics platform
+- Docker Compose local deployment
+- Reproducible analytical environments
+
 ---
 
 ## Future Improvements
 
-- Real-time streaming ingestion
-- Kafka integration
 - Airflow orchestration
-- Docker containerization
+- Kafka streaming ingestion
 - Cloud deployment
-- Cohort retention analytics
-- Anomaly detection
+- Real-time event streaming
+- Cohort heatmaps
+- Advanced anomaly detection
+- ML-based forecasting
 
 ---
 

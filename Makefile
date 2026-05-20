@@ -10,5 +10,11 @@ quality:
 pipeline:
 	python orchestration/pipeline_flow.py
 
+retention:
+	python scripts/build_retention_mart.py
+
+anomalies:
+	python scripts/build_anomaly_detection.py
+
 run-all:
 	python run_pipeline.py

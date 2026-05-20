@@ -32,6 +32,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# =========================================================
+# LOAD DATA
+# =========================================================
+
 revenue = pd.read_csv(
     MARTS_DIR / "mart_revenue.csv"
 )
@@ -44,17 +48,45 @@ quality = pd.read_csv(
     MARTS_DIR / "quality_check_results.csv"
 )
 
+retention = pd.read_csv(
+    MARTS_DIR / "mart_retention.csv"
+)
+
+anomalies = pd.read_csv(
+    MARTS_DIR / "mart_anomalies.csv"
+)
+
+# =========================================================
+# DATE PARSING
+# =========================================================
+
 revenue["event_month"] = pd.to_datetime(
     revenue["event_month"]
 )
+
+retention["event_month"] = pd.to_datetime(
+    retention["event_month"]
+)
+
+anomalies["event_month"] = pd.to_datetime(
+    anomalies["event_month"]
+)
+
+# =========================================================
+# HEADER
+# =========================================================
 
 st.title("Real-Time Product Intelligence Platform")
 
 st.markdown(
     """
-    Modern analytics engineering platform designed to simulate event-driven product intelligence, revenue analytics, funnel monitoring, and automated data quality workflows.
+    Modern analytics engineering platform designed to simulate event-driven product intelligence, revenue analytics, funnel monitoring, retention analytics, anomaly detection, and automated data quality workflows.
     """
 )
+
+# =========================================================
+# SIDEBAR FILTERS
+# =========================================================
 
 with st.sidebar:
 
@@ -72,13 +104,23 @@ with st.sidebar:
         default=sorted(revenue["platform"].unique())
     )
 
+# =========================================================
+# FILTER DATA
+# =========================================================
+
 filtered = revenue[
     (revenue["country"].isin(country_filter)) &
     (revenue["platform"].isin(platform_filter))
 ]
 
+# =========================================================
+# KPI CALCULATIONS
+# =========================================================
+
 total_revenue = filtered["total_revenue"].sum()
+
 total_users = filtered["active_users"].sum()
+
 total_events = filtered["total_events"].sum()
 
 avg_revenue_per_user = (
@@ -91,6 +133,10 @@ quality_pass_rate = (
     (quality["status"] == "passed").sum()
     / len(quality)
 )
+
+# =========================================================
+# TOP KPI CARDS
+# =========================================================
 
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
@@ -114,11 +160,21 @@ kpi4.metric(
     f"{quality_pass_rate:.0%}"
 )
 
-tab1, tab2, tab3 = st.tabs([
+# =========================================================
+# TABS
+# =========================================================
+
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "Revenue Intelligence",
     "Funnel Analytics",
+    "Retention Analytics",
+    "Anomaly Monitoring",
     "Data Quality"
 ])
+
+# =========================================================
+# TAB 1 — REVENUE INTELLIGENCE
+# =========================================================
 
 with tab1:
 
@@ -206,6 +262,10 @@ with tab1:
         use_container_width=True
     )
 
+# =========================================================
+# TAB 2 — FUNNEL ANALYTICS
+# =========================================================
+
 with tab2:
 
     st.subheader("Product Funnel Analytics")
@@ -233,7 +293,175 @@ with tab2:
         use_container_width=True
     )
 
+# =========================================================
+# TAB 3 — RETENTION ANALYTICS
+# =========================================================
+
 with tab3:
+
+    st.subheader("Retention Analytics")
+
+    retention_filtered = retention.copy()
+
+    retention_rate_avg = (
+        retention_filtered["retention_rate"]
+        .mean()
+    )
+
+    latest_mau = (
+        retention_filtered
+        .sort_values("event_month")
+        ["monthly_active_users"]
+        .iloc[-1]
+    )
+
+    latest_returning = (
+        retention_filtered
+        .sort_values("event_month")
+        ["returning_users"]
+        .iloc[-1]
+    )
+
+    rkpi1, rkpi2, rkpi3 = st.columns(3)
+
+    rkpi1.metric(
+        "Avg Retention Rate",
+        f"{retention_rate_avg:.1%}"
+    )
+
+    rkpi2.metric(
+        "Latest Monthly Active Users",
+        f"{latest_mau:,.0f}"
+    )
+
+    rkpi3.metric(
+        "Latest Returning Users",
+        f"{latest_returning:,.0f}"
+    )
+
+    fig_retention = px.line(
+        retention_filtered,
+        x="event_month",
+        y="retention_rate",
+        markers=True,
+        title="Monthly Retention Rate"
+    )
+
+    fig_retention.update_layout(
+        template="plotly_dark",
+        height=420
+    )
+
+    st.plotly_chart(
+        fig_retention,
+        use_container_width=True
+    )
+
+    colr1, colr2 = st.columns(2)
+
+    fig_mau = px.bar(
+        retention_filtered,
+        x="event_month",
+        y="monthly_active_users",
+        title="Monthly Active Users"
+    )
+
+    fig_mau.update_layout(
+        template="plotly_dark",
+        height=380
+    )
+
+    colr1.plotly_chart(
+        fig_mau,
+        use_container_width=True
+    )
+
+    fig_returning = px.bar(
+        retention_filtered,
+        x="event_month",
+        y="returning_users",
+        title="Returning Users"
+    )
+
+    fig_returning.update_layout(
+        template="plotly_dark",
+        height=380
+    )
+
+    colr2.plotly_chart(
+        fig_returning,
+        use_container_width=True
+    )
+
+    st.dataframe(
+        retention_filtered,
+        use_container_width=True
+    )
+
+# =========================================================
+# TAB 4 — ANOMALY MONITORING
+# =========================================================
+
+with tab4:
+
+    st.subheader("Revenue Anomaly Monitoring")
+
+    anomaly_count = len(
+        anomalies[
+            anomalies["anomaly_status"] == "anomaly"
+        ]
+    )
+
+    avg_revenue = anomalies["avg_revenue"].mean()
+
+    max_deviation = anomalies["deviation"].max()
+
+    akpi1, akpi2, akpi3 = st.columns(3)
+
+    akpi1.metric(
+        "Detected Anomalies",
+        anomaly_count
+    )
+
+    akpi2.metric(
+        "Average Revenue",
+        f"${avg_revenue:,.0f}"
+    )
+
+    akpi3.metric(
+        "Max Revenue Deviation",
+        f"${max_deviation:,.0f}"
+    )
+
+    fig_anomalies = px.line(
+        anomalies,
+        x="event_month",
+        y="total_revenue",
+        color="anomaly_status",
+        markers=True,
+        title="Revenue Anomaly Detection"
+    )
+
+    fig_anomalies.update_layout(
+        template="plotly_dark",
+        height=450
+    )
+
+    st.plotly_chart(
+        fig_anomalies,
+        use_container_width=True
+    )
+
+    st.dataframe(
+        anomalies,
+        use_container_width=True
+    )
+
+# =========================================================
+# TAB 5 — DATA QUALITY
+# =========================================================
+
+with tab5:
 
     st.subheader("Data Quality Monitoring")
 

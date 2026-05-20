@@ -17,6 +17,20 @@ def build_warehouse():
         check=True
     )
 
+@task
+def build_retention_mart():
+    subprocess.run(
+        ["python", "scripts/build_retention_mart.py"],
+        check=True
+    )
+
+@task
+def build_anomaly_detection():
+
+    subprocess.run(
+        ["python", "scripts/build_anomaly_detection.py"],
+        check=True
+    )
 
 @task
 def run_quality_checks():
@@ -32,6 +46,10 @@ def product_intelligence_pipeline():
     generate_events()
 
     build_warehouse()
+
+    build_retention_mart()
+
+    build_anomaly_detection()
 
     run_quality_checks()
 
