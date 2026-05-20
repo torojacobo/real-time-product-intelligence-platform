@@ -88,15 +88,15 @@ Executive Dashboard
 
 ### Revenue Intelligence
 
-(Add screenshot here)
+![Revenue Intelligence](assets/revenue_intelligence.png)
 
 ### Funnel Analytics
 
-(Add screenshot here)
+![Funnel Analytics](assets/funnel_analytics.png)
 
 ### Data Quality Monitoring
 
-(Add screenshot here)
+![Data Quality Monitoring](assets/data_quality_monitoring.png)
 
 ---
 
